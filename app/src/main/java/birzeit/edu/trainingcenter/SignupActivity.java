@@ -153,7 +153,7 @@ public class SignupActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     if (UserType.equals("Admin")) {
-                        Intent intent = new Intent(SignupActivity.this, InstructorMainActivity.class);
+                        Intent intent = new Intent(SignupActivity.this, AdmainMainActivity.class);
                         startActivity(intent);
 
                     } else if (UserType.equals("Trainee")) {
