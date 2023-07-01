@@ -30,6 +30,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 INSTALLED_APPS = [
 
     'account.apps.AccountConfig',
+    'owner.apps.OwnerConfig',
+    'instructor.apps.InstructorConfig',
+    'trainee.apps.TraineeConfig',
+    'course.apps.CourseConfig',
+    'notification.apps.NotificationConfig',
+
     'polls.apps.PollsConfig',
 
     'rest_framework',

@@ -7,6 +7,13 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('polls/', include('polls.urls', namespace='polls')),
+    path('account/', include('account.urls', namespace='account')),
+    path('owner/', include('owner.urls', namespace='owner')),
+    path('instructor/', include('instructor.urls', namespace='instructor')),
+    path('trainee/', include('trainee.urls', namespace='trainee')),
+    path('course/', include('course.urls', namespace='course')),
+    path('notification/', include('notification.urls', namespace='notification')),
+
 
 ]
 
