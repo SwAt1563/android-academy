@@ -99,7 +99,7 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
     //      .................................................Update Query.............................
     private void showCoursesTaught() {
         // Perform query to fetch courses taught by the instructor
-        List<Course> courses = getDummyCourses(); // Dummy data for courses taught
+        List<Course> courses = getDummyCourses(); // Dummy data for courses taught //TODO......Query
 
         // Clear existing TextViews
         clearDynamicTextViews();
@@ -115,7 +115,7 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
     //      .................................................Update Query.............................
     private void showPreviouslyTaughtCourses() {
         // Perform query to fetch previously taught courses by the instructor
-        List<Course> previouslyTaughtCourses = getDummyPreviouslyTaughtCourses(); // Dummy data for previously taught courses
+        List<Course> previouslyTaughtCourses = getDummyPreviouslyTaughtCourses(); //TODO......Query // Dummy data for previously taught courses
 
         // Clear existing TextViews
         clearDynamicTextViews();
@@ -132,7 +132,7 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
 
     private void showStudentsList() {
         // Perform query to fetch the list of students in a selected course
-        List<Student> students = getDummyStudents(); // Dummy data for students list
+        List<Student> students = getDummyStudents(); //TODO......Query // Dummy data for students list
 
         // Clear existing TextViews
         clearDynamicTextViews();
@@ -151,7 +151,7 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
 
     private void showProfile() {
         // Fetch the instructor's profile information
-        Instructor instructor = getDummyProfile(); // Dummy data for instructor's profile
+        Instructor instructor = getDummyProfile(); //TODO......Query // Dummy data for instructor's profile
 
         // Clear existing TextViews
         clearDynamicTextViews();

@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 //...................................LOGIN...................
 public class MainActivity extends AppCompatActivity {
     private Button signupButton;
+    private Button login;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,6 +17,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         signupButton = findViewById(R.id.buttonSignUp);
+        login = findViewById(R.id.buttonLogin);
+
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO .................................
+                //Forworde to the page of the user
+                //Intent intent = new Intent(MainActivity.this, """User Activitt""".class);
+                //startActivity(intent);
+            }
+        });
 
         signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -25,6 +38,5 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Rest of the code
-    // ...
+
 }

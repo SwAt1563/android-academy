@@ -157,6 +157,8 @@ public class SignupActivity extends AppCompatActivity {
                         startActivity(intent);
 
                     } else if (UserType.equals("Trainee")) {
+                        Intent intent = new Intent(SignupActivity.this, StudentMainActivity.class);
+                        startActivity(intent);
 
                     } else if (UserType.equals("Instructor")) {
                         Intent intent = new Intent(SignupActivity.this, InstructorMainActivity.class);
