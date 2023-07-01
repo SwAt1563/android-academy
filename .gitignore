@@ -91,8 +91,7 @@ db.sqlite3
 # Logs
 *.log
 
-# Environment variables
-.env
+
 
 # IDE-specific files
 .idea/
