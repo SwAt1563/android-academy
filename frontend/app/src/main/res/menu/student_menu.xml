@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/notification_available_course"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="Available New Courses: Notification" />
+        <item
+            android:id="@+id/view_courses"
+            android:icon="@android:drawable/ic_menu_view"
+            android:title="View Courses" />
+
+        <item
+            android:id="@+id/enroll_in_course"
+            android:icon="@android:drawable/ic_menu_add"
+            android:title="Enroll in Course" />
+        <item
+            android:id="@+id/registration_notification"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Registration Accept/Reject: Notification" />
+        <item
+            android:id="@+id/view_studied_courses"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="View Studied Courses" />
+        <item
+            android:id="@+id/view_course_history"
+            android:icon="@android:drawable/ic_menu_gallery"
+            android:title="View Course History" />
+        <item
+            android:id="@+id/view_profile"
+            android:icon="@android:drawable/ic_menu_info_details"
+            android:title="View Profile" />
+        <item
+            android:id="@+id/update_enrolled_courses_notification"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="Update On Enrolled Courses: Notification" />
+    </group>
+</menu>

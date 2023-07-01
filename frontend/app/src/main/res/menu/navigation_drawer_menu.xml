@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_courses_taught"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Courses Taught" />
+        <item
+            android:id="@+id/nav_previously_taught"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="Previously Taught" />
+        <item
+            android:id="@+id/nav_students_list"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Students List" />
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="Profile" />
+    </group>
+</menu>
