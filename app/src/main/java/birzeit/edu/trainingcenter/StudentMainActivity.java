@@ -132,8 +132,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
             coursesSpinner.setAdapter(coursesAdapter);
             dynamicContentLayout.addView(coursesSpinner);
 
-            //In case student Enroll after showing the details
-            Button Enroll = new Button(this);
+
 
 
         // Show Details
@@ -212,23 +211,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
                     deadlineLabel.setPadding(0, 0, 0, 30); // Add bottom padding
                     dynamicContentLayout.addView(deadlineLabel);
 
-                    // Show Enroll Button
-                    Enroll.setText("Enroll");
-                    Enroll.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            // Clear the dynamic content layout
-                            viewCourseDetails();
-                            String selectedCourse = coursesSpinner.getSelectedItem().toString();
 
-                            // .....................TODO: Query the database based on the selected course
-                            String message = "Enrollment in the course: " + selectedCourse + "\nSent to Admin";
-                            Toast.makeText(StudentMainActivity.this, message, Toast.LENGTH_SHORT).show();
-
-                        }
-                    });
-
-                    dynamicContentLayout.addView(Enroll);
                 }
             });
 

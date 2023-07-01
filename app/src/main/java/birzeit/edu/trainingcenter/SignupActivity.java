@@ -98,7 +98,7 @@ public class SignupActivity extends AppCompatActivity {
         // instructor
         // Set up the instructor courses that the instructor can teach
         ListView coursesListView = findViewById(R.id.coursesListView);
-        List<String> courseList = Arrays.asList("C", "Python", "Java", "AI"); // Replace with your actual course list
+        List<String> courseList = Arrays.asList("C", "Python", "Java", "AI"); // TODO : QUERY
         CourseAdapter courseAdapter = new CourseAdapter(this, courseList);
         coursesListView.setAdapter(courseAdapter);
 

@@ -581,7 +581,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 dynamicContentLayout.addView(addressLabel);
 
                 // Check if the user is a student or not//............................... TODO: Query
-                boolean isStudent = false; // Replace with logic to determine if the user is a student
+                boolean isStudent = true; // Replace with logic to determine if the user is a student
 
                 if (!isStudent) {
                     TextView specializationLabel = new TextView(AdmainMainActivity.this);

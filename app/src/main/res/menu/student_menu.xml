@@ -9,10 +9,7 @@
             android:id="@+id/view_courses"
             android:icon="@android:drawable/ic_menu_view"
             android:title="View Courses" />
-        <item
-            android:id="@+id/view_course_details"
-            android:icon="@android:drawable/ic_menu_info_details"
-            android:title="View Course Details" />
+
         <item
             android:id="@+id/enroll_in_course"
             android:icon="@android:drawable/ic_menu_add"
