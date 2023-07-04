@@ -13,17 +13,17 @@ class CreateDummyDataView(APIView):
         try:
             users_data = [
                 {'username': 'user1', 'first_name': 'John', 'last_name': 'Doe', 'email': 'user1@example.com',
-                 'password': '1'},
+                 'password': '1', 'user_type': 'owner'},
                 {'username': 'user2', 'first_name': 'Jane', 'last_name': 'Smith', 'email': 'user2@example.com',
-                 'password': '1'},
+                 'password': '1', 'user_type': 'owner'},
                 {'username': 'user3', 'first_name': 'Alice', 'last_name': 'Johnson', 'email': 'user3@example.com',
-                 'password': '1'},
+                 'password': '1', 'user_type': 'instructor'},
                 {'username': 'user4', 'first_name': 'Bob', 'last_name': 'Brown', 'email': 'user4@example.com',
-                 'password': '1'},
+                 'password': '1', 'user_type': 'instructor'},
                 {'username': 'user5', 'first_name': 'Emily', 'last_name': 'Davis', 'email': 'user5@example.com',
-                 'password': '1'},
+                 'password': '1', 'user_type': 'trainee'},
                 {'username': 'user6', 'first_name': 'Michael', 'last_name': 'Wilson', 'email': 'user6@example.com',
-                 'password': '1'},
+                 'password': '1', 'user_type': 'trainee'},
             ]
 
             # Create user accounts

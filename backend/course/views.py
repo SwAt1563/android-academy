@@ -6,7 +6,9 @@ from rest_framework import generics
 from .models import Course
 from .serializers import CourseSerializer
 from notification.models import Notification
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all()
@@ -25,24 +27,31 @@ class CourseCreateView(generics.CreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
-class CourseUpdateView(generics.UpdateAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
-    lookup_field = 'title'
 
-    def perform_update(self, serializer):
-        instance = serializer.save()
+class CourseUpdateView(APIView):
+    def patch(self, request, title):
+        try:
+            course = Course.objects.get(title=title)
+        except Course.DoesNotExist:
+            return Response({'error': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Check if the course has been updated
-        if serializer.instance._state.adding or serializer.instance._state.modified_fields:
-            # Get the approved trainees of the course
-            approved_trainees = instance.enrollments.filter(status='Approved').values_list('trainee__user', flat=True)
+        serializer = CourseSerializer(course, data=request.data, partial=True)
+        if serializer.is_valid():
+            instance = serializer.save()
 
-            # Create notifications for the approved trainees
-            for user in approved_trainees:
-                message = f"The course {instance.title} has been updated."
-                Notification.objects.create(message=message, user=user)
+            # Check if the course has been updated
+            if serializer.instance._state.adding or serializer.instance._state.modified_fields:
+                # Get the approved trainees of the course
+                approved_trainees = instance.enrollments.filter(status='Approved').values_list('trainee__user', flat=True)
 
+                # Create notifications for the approved trainees
+                for user in approved_trainees:
+                    message = f"The course {instance.title} has been updated."
+                    Notification.objects.create(message=message, user=user)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CourseDeleteView(generics.DestroyAPIView):
     queryset = Course.objects.all()

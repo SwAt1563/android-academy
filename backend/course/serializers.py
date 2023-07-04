@@ -10,19 +10,22 @@ class CourseSerializer(serializers.ModelSerializer):
     instructor = serializers.CharField(source='instructor.user.username')
     start_date = serializers.DateField(format='%Y-%m-%d')
     end_date = serializers.DateField(format='%Y-%m-%d')
-    prerequisites = serializers.ListField(child=serializers.CharField(), required=False)
+    prerequisites = serializers.SerializerMethodField()
     trainees_count = serializers.IntegerField(read_only=True)
     trainees = serializers.ListField(child=serializers.CharField(), read_only=True)
     is_finish = serializers.ReadOnlyField()
     is_available = serializers.ReadOnlyField()
 
-
+    def get_prerequisites(self, obj):
+        prerequisites = obj.prerequisites.all()
+        return [prerequisite.title for prerequisite in prerequisites]
 
 
     class Meta:
         model = Course
-        fields = ['title', 'topics', 'instructor', 'venue', 'start_date', 'end_date', 'prerequisites', 'trainees_count',
+        fields = ['title', 'topics', 'instructor', 'venue', 'prerequisites', 'start_date', 'end_date',  'trainees_count',
                   'trainees', 'is_finish', 'is_available']
+
 
     def to_internal_value(self, data):
         ret = super().to_internal_value(data)

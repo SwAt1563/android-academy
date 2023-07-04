@@ -6,6 +6,8 @@ from owner.serializers import OwnerSerializer
 from trainee.serializers import TraineeSerializer
 from instructor.serializers import InstructorSerializer
 from .models import UserAccount
+from rest_framework.views import APIView
+from rest_framework import status
 
 # Create your views here.
 
@@ -30,9 +32,17 @@ class UserSignInView(generics.GenericAPIView):
 
         return Response(user_data)
 
-# update user account
-class UserAccountUpdateView(generics.UpdateAPIView):
-    queryset = UserAccount.objects.all()
-    serializer_class = UserAccountSerializer
-    lookup_field = 'username'
-    lookup_url_kwarg = 'username'  # the name of the url parameter ( the default is equal to lookup_field )
+
+
+class UserAccountUpdateView(APIView):
+    def patch(self, request, username):
+        try:
+            user = UserAccount.objects.get(username=username)
+        except UserAccount.DoesNotExist:
+            return Response({'error': 'UserAccount not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserAccountSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

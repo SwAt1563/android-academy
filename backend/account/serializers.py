@@ -8,7 +8,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
         fields = ['username', 'first_name', 'last_name', 'password', 'email', 'user_type']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {'password': {'write_only': True}, 'user_type': {'read_only': True}}
 
 
     def update(self, instance, validated_data):
