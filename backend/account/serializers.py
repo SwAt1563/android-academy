@@ -10,10 +10,13 @@ class UserAccountSerializer(serializers.ModelSerializer):
         fields = ['username', 'first_name', 'last_name', 'password', 'email', 'user_type']
         extra_kwargs = {'password': {'write_only': True}}
 
+
     def update(self, instance, validated_data):
-        instance.first_name = validated_data.get('first_name', instance.last_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
+        # Update only the fields present in the validated_data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
+
         return instance
 
 

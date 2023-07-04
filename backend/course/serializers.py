@@ -50,6 +50,13 @@ class CourseSerializer(serializers.ModelSerializer):
         course.prerequisites.set(prerequisites)
         return course
 
+    def update(self, instance, validated_data):
+        # Update only the fields present in the validated_data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
 
 
 
