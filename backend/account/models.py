@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 
 class UserAccount(AbstractUser):
     is_admin = models.BooleanField(default=False)
-    user_type = models.CharField(max_length=10, required=True)
+    user_type = models.CharField(max_length=10, blank=False, null=False)
 
 
     def __str__(self):

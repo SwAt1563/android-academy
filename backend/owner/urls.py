@@ -6,8 +6,9 @@ from . import views
 
 app_name = 'owner'
 urlpatterns = [
-
-
+    path('signup/', views.OwnerSignUpView.as_view(), name='owner-signup'),
+    path('profile/<str:username>/', views.OwnerProfileView.as_view(), name='owner-profile'),
+    path('enrollment_status/', views.EnrollmentStatusView.as_view(), name='enrollment-status'),
 
 ]
 

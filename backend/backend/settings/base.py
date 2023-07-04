@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'course.apps.CourseConfig',
     'notification.apps.NotificationConfig',
 
-    'polls.apps.PollsConfig',
+
 
     'rest_framework',
     'corsheaders',

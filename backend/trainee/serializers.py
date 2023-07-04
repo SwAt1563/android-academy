@@ -2,18 +2,21 @@ from rest_framework import serializers
 
 
 
-from .models import Question, Choice
+from .models import Trainee
+from account.serializers import UserAccountSerializer
+from account.models import UserAccount
 
 
 
-class ChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Choice
-        fields = '__all__'
-
-class QuestionSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True, read_only=True)
+class TraineeSerializer(serializers.ModelSerializer):
+    user = UserAccountSerializer()
 
     class Meta:
-        model = Question
-        fields = ['id', 'question_text', 'pub_date', 'choices']
+        model = Trainee
+        fields = ['user', 'address', 'phone']
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user = UserAccount.objects.create_user(**user_data, user_type='trainee')
+        trainee = Trainee.objects.create(user=user, **validated_data)
+        return trainee
