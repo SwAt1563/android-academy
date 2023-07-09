@@ -523,6 +523,7 @@ public class API {
         return true;
     }
 
+
     public static Course addCourse(Course object){
 
         // Create a JSON object
@@ -700,6 +701,28 @@ public class API {
 
         return courses;
     }
+
+    public static List<String> allInstructorsUsernames(){
+
+        JSONArray response = API.apiArray(SERVER_URL + "instructor/list/", "GET", null);
+
+        if (response == null)
+            return null;
+
+        List<String> instructors = new ArrayList<String>();
+
+        try {
+            for (int i = 0; i < response.length(); i++) {
+                String instructorName = response.getString(i);
+                instructors.add(instructorName);
+            }
+        } catch (JSONException e) {
+            return null;
+        }
+
+        return instructors;
+    }
+
 
     // ############################################################ END Instructor Course ############################################################ //
 

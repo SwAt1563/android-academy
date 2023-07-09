@@ -4,6 +4,9 @@ from .models import Instructor
 from .serializers import InstructorSerializer
 from course.models import Course
 from course.serializers import CourseSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 # Create your views here.
 
@@ -37,3 +40,10 @@ class PreviousCoursesView(generics.ListAPIView):
         courses = Course.objects.filter(instructor__user__username=instructor_username)
         finished_courses = [course for course in courses if course.is_finish]
         return finished_courses
+
+
+class InstructorsListView(APIView):
+    def get(self, request):
+        instructors = Instructor.objects.all()
+        usernames = [instructor.user.username for instructor in instructors]
+        return Response(usernames, status=status.HTTP_200_OK)
