@@ -39,6 +39,4 @@ class Enrollment(models.Model):
         super().delete(*args, **kwargs)
 
     def __str__(self):
-        return self.trainee + ' - ' + self.course.title
-
-
+        return f"{self.trainee} - {self.course.title}"

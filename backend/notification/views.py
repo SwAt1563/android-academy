@@ -9,6 +9,8 @@ from course.models import Course
 from account.models import UserAccount
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import IntegrityError
+
 
 
 
@@ -34,14 +36,15 @@ class CourseStartNotificationAPIView(APIView):
             instructor = course.instructor
             message = f"The course '{course.title}' is starting today."
 
+
             # Send notification to trainees
-            for trainee_username in trainees:
-                # Assuming UserAccount model has a related_name 'user'
-                trainee = get_object_or_404(UserAccount, user__username=trainee_username)
-                Notification.objects.create(message=message, user=trainee)
+            for trainee in trainees:
+                if not Notification.objects.filter(user=trainee, message=message).exists():
+                    Notification.objects.create(message=message, user=trainee)
 
+                # Send notification to instructor
+                if not Notification.objects.filter(user=instructor.user, message=message).exists():
+                    Notification.objects.create(message=message, user=instructor.user)
 
-            # Send notification to instructor
-            Notification.objects.create(message=message, user=instructor.user)
 
         return Response("Notifications sent.", status=status.HTTP_200_OK)

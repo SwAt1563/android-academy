@@ -9,6 +9,7 @@ from notification.models import Notification
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from account.models import UserAccount
 
 class CourseListView(generics.ListAPIView):
     queryset = Course.objects.all()
@@ -40,13 +41,14 @@ class CourseUpdateView(APIView):
             instance = serializer.save()
 
             # Check if the course has been updated
-            if serializer.instance._state.adding or serializer.instance._state.modified_fields:
+            if serializer.instance != serializer.data:
                 # Get the approved trainees of the course
                 approved_trainees = instance.enrollments.filter(status='Approved').values_list('trainee__user', flat=True)
 
                 # Create notifications for the approved trainees
                 for user in approved_trainees:
                     message = f"The course {instance.title} has been updated."
+                    user = UserAccount.objects.get(id=user)
                     Notification.objects.create(message=message, user=user)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -65,6 +67,10 @@ class CourseDeleteView(generics.DestroyAPIView):
         # Create notifications for the approved trainees
         for user in approved_trainees:
             message = f"The course {instance.title} has been deleted."
-            Notification.objects.create(message=message, user=user)
+
+            # Retrieve the UserAccount instance
+            user_account = UserAccount.objects.get(id=user)
+
+            Notification.objects.create(message=message, user=user_account)
 
         instance.delete()
