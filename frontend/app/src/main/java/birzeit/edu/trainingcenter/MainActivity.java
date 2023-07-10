@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //TODO .................................
 
+                Boolean done = API.startCoursesNotifications();
 
                 String email = emailField.getText().toString();
                 String password = passwordField.getText().toString();
