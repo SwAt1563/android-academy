@@ -74,3 +74,11 @@ class CourseDeleteView(generics.DestroyAPIView):
             Notification.objects.create(message=message, user=user_account)
 
         instance.delete()
+
+
+class CoursesNotAvailableView(generics.ListAPIView):
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        courses = Course.objects.filter(is_available=False)
+        return courses

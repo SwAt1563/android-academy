@@ -6,13 +6,6 @@
         <item>Instructor</item>
     </string-array>
     <string name="select_user_type">Select User Type</string>
-    <string name="select_course">Select Course</string>
-    <string-array name="courses_array">
-        <item>C</item>
-        <item>Python</item>
-        <item>Java</item>
-        <item>AI</item>
-    </string-array>
     <string-array name="degree_array">
         <item>BSc</item>
         <item>MSc</item>

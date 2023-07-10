@@ -1,10 +1,13 @@
 package birzeit.edu.trainingcenter;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.SparseBooleanArray;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,12 +15,16 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -95,6 +102,11 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 // Handle view_course_history action
                 viewCourseHistory();
                 break;
+
+            case R.id.logout3:
+                // Handle create_course action
+                logout();
+                break;
         }
 
         drawerLayout.closeDrawers();
@@ -116,11 +128,11 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
         // Course Description
         TextView descriptionTextView = new TextView(this);
-        descriptionTextView.setText("Description:");
+        descriptionTextView.setText("Topics:");
         dynamicContentLayout.addView(descriptionTextView);
 
         EditText descriptionEditText = new EditText(this);
-        descriptionEditText.setHint("Enter course description");
+        descriptionEditText.setHint("Enter course Topics");
         dynamicContentLayout.addView(descriptionEditText);
 
         // Course Venue
@@ -140,7 +152,8 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         Spinner instructorSpinner = new Spinner(this);
         //TODO :.........................Make A Query for Instructors............................................................
         //TODO :Replace getDummyInstructorList()
-        List<String> instructorList = getDummyInstructorList(); // Dummy data for instructor list
+
+        List<String> instructorList = API.allInstructorsUsernames(); // Dummy data for instructor list
         ArrayAdapter<String> instructorAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, instructorList);
         instructorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         instructorSpinner.setAdapter(instructorAdapter);
@@ -171,19 +184,33 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         endDateSpinner.setAdapter(endDateAdapter);
         dynamicContentLayout.addView(endDateSpinner);
 
-        // Deadline Registration
-        TextView DeadlineDateTextView = new TextView(this);
-        DeadlineDateTextView.setText("Deadline Registration Date:");
-        dynamicContentLayout.addView(DeadlineDateTextView);
+
+        // Prerequisites
 
 
-        // Set up the deadline spinner with all possible dates
-        Spinner deadlineSpinner = new Spinner(this);
-        List<String> deadlineList = getAllPossibleDates();
-        ArrayAdapter<String> deadlineAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, deadlineList);
-        deadlineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        deadlineSpinner.setAdapter(deadlineAdapter);
-        dynamicContentLayout.addView(deadlineSpinner);
+        // label for prerequisites
+        TextView prerequisitesTextView = new TextView(this);
+        prerequisitesTextView.setText("Prerequisites:");
+        dynamicContentLayout.addView(prerequisitesTextView);
+
+        List<Course> allCourses = API.getCourses();
+        List<String> allCoursesTitles = new ArrayList<>();
+        for (Course course : allCourses) {
+            allCoursesTitles.add(course.getTitle());
+        }
+
+        ListView prerequisitesListView = new ListView(this);
+
+        //CourseAdapter: We can use this class for any list of cheacke boxes
+        CourseAdapter prerequisitesListAdapter = new CourseAdapter(this, allCoursesTitles);
+        prerequisitesListView.setAdapter(prerequisitesListAdapter);
+        dynamicContentLayout.addView(prerequisitesListView);
+
+
+
+
+
+
 
 
         // Button to read the entered data
@@ -193,16 +220,45 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
             @Override
             public void onClick(View v) {
                 String courseTitle = titleEditText.getText().toString().trim();
-                String courseDescription = descriptionEditText.getText().toString().trim();
+                String courseTopics = descriptionEditText.getText().toString().trim();
                 String courseVenue = venueEditText.getText().toString().trim();
                 String selectedInstructor = instructorSpinner.getSelectedItem().toString();
-                String selectedStartDate = startDateSpinner.getSelectedItem().toString();
                 String endDate = endDateSpinner.getSelectedItem().toString();
                 String startDate = startDateSpinner.getSelectedItem().toString();
-                String deadline = deadlineSpinner.getSelectedItem().toString();
+                Set<String> AcceptCourses = prerequisitesListAdapter.getSelectedCourses();
+                List<String> prerequisitesList = new ArrayList<>(AcceptCourses);
+
+                Course course = new Course(
+                        courseTitle,
+                        courseTopics,
+                        selectedInstructor,
+                        courseVenue,
+                        prerequisitesList,
+                        startDate,
+                        endDate,
+                        0, // trainees_count (set as 0 initially)
+                        new ArrayList<>(), // trainees (empty list initially)
+                        false, // is_finish (set as false initially)
+                        false // is_available (set as false initially)
+                );
+
+
+                Course response = API.addCourse(course);
+
+                if (response == null) {
+                    Toast.makeText(getApplicationContext(), "Failed to create course", Toast.LENGTH_SHORT).show();
+
+                }else {
+                    Toast.makeText(getApplicationContext(), "Course created successfully", Toast.LENGTH_SHORT).show();
+                }
+
+
+
 
 
                 //TODO :.........................Add Course to the dataBase............................................................
+
+                createCourse();
 
             }
         });
@@ -210,13 +266,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
     }
 
     // Dummy data for instructor list
-    private List<String> getDummyInstructorList() {
-        List<String> instructorList = new ArrayList<>();
-        instructorList.add("Mohammad Mualla");
-        instructorList.add("Tareq G Zidan");
-        instructorList.add("Eng:Q.A");
-        return instructorList;
-    }
+
 
     private List<String> getAllPossibleDates() {
         List<String> dateList = new ArrayList<>();
@@ -252,8 +302,12 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         Spinner CoursesSpinner = new Spinner(this);
         //TODO :.........................Make A Query for Courses............................................................
         //TODO :Replace getDummyCourses()
-        List<String> CoursesList = getDummyCourses(); // Dummy data for Courses list
-        ArrayAdapter<String> CoursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, CoursesList);
+        List<Course> CoursesList = API.getCourses();
+        List<String> CoursesTitles = new ArrayList<>();
+        for (Course course : CoursesList) {
+            CoursesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> CoursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, CoursesTitles);
         CoursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         CoursesSpinner.setAdapter(CoursesAdapter);
         dynamicContentLayout.addView(CoursesSpinner);
@@ -297,7 +351,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         Spinner instructorSpinner = new Spinner(this);
         //TODO :.........................Make A Query for Instructors............................................................
         //TODO :Replace getDummyInstructorList()
-        List<String> instructorList = getDummyInstructorList(); // Dummy data for instructor list
+        List<String> instructorList = API.allInstructorsUsernames(); // Dummy data for instructor list
         ArrayAdapter<String> instructorAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, instructorList);
         instructorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         instructorSpinner.setAdapter(instructorAdapter);
@@ -330,20 +384,90 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         endDateSpinner.setAdapter(endDateAdapter);
         dynamicContentLayout.addView(endDateSpinner);
 
-        // Deadline Registration
-        TextView DeadlineDateTextView = new TextView(this);
-        DeadlineDateTextView.setText("Deadline Registration Date:");
-        DeadlineDateTextView.setTypeface(DeadlineDateTextView.getTypeface(), Typeface.BOLD);
-        dynamicContentLayout.addView(DeadlineDateTextView);
+        // Registration Available
+        TextView availableTextView = new TextView(this);
+        availableTextView.setText("Registration Available:");
+        availableTextView.setTypeface(availableTextView.getTypeface(), Typeface.BOLD);
+        dynamicContentLayout.addView(availableTextView);
+
+        // isFinished
+        TextView isFinishedTextView = new TextView(this);
+        isFinishedTextView.setText("isFinished:");
+        isFinishedTextView.setTypeface(isFinishedTextView.getTypeface(), Typeface.BOLD);
+        dynamicContentLayout.addView(isFinishedTextView);
 
 
-        // Set up the deadline spinner with all possible dates
-        Spinner deadlineSpinner = new Spinner(this);
-        List<String> deadlineList = getAllPossibleDates();
-        ArrayAdapter<String> deadlineAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, deadlineList);
-        deadlineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        deadlineSpinner.setAdapter(deadlineAdapter);
-        dynamicContentLayout.addView(deadlineSpinner);
+        // prerequisites spinner
+        TextView prerequisitesTextView = new TextView(this);
+        prerequisitesTextView.setText("Prerequisites:");
+        prerequisitesTextView.setTypeface(prerequisitesTextView.getTypeface(), Typeface.BOLD);
+        dynamicContentLayout.addView(prerequisitesTextView);
+
+        Spinner prerequisitesSpinner = new Spinner(this);
+        //TODO :.........................Make A Query for prerequisites............................................................
+        //TODO :Replace getDummyCourses()
+        List<Course> prerequisitesList = API.getCourses();
+        List<String> prerequisitesTitles = new ArrayList<>();
+        for (Course course : prerequisitesList) {
+            prerequisitesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> prerequisitesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, prerequisitesTitles);
+        prerequisitesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        prerequisitesSpinner.setAdapter(prerequisitesAdapter);
+        dynamicContentLayout.addView(prerequisitesSpinner);
+
+
+
+
+
+
+        CoursesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // selected courses
+                String selectedCourses = CoursesSpinner.getSelectedItem().toString();
+                //TODO :.........................Make A Query for Courses............................................................
+
+                Course course = API.getCourse(selectedCourses);
+                titleEditText.setText(course.getTitle());
+                descriptionEditText.setText(course.getTopics());
+                venueEditText.setText(course.getVenue());
+                instructorSpinner.setSelection(instructorAdapter.getPosition(course.getInstructor()));
+                startDateSpinner.setSelection(startDateAdapter.getPosition(course.getStart_date()));
+                endDateSpinner.setSelection(endDateAdapter.getPosition(course.getEnd_date()));
+                availableTextView.setText(String.valueOf(course.isIs_available()));
+                isFinishedTextView.setText(String.valueOf(course.isIs_finish()));
+
+                List<String> prerequisites = course.getPrerequisites();
+                List<Integer> selectedPrerequisiteIndices = new ArrayList<>();
+
+                // Iterate through the prerequisites list
+                for (String prerequisite : prerequisites) {
+                    for (int i = 0; i < prerequisitesList.size(); i++) {
+                        if (prerequisitesList.get(i).equals(prerequisite)) {
+                            selectedPrerequisiteIndices.add(i);
+                            break;
+                        }
+                    }
+                }
+
+                // Set the selected prerequisites in the spinner
+                for (int index : selectedPrerequisiteIndices) {
+                    prerequisitesSpinner.setSelection(index);
+                }
+
+
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+
+
 
 
         // Button to read the entered data
@@ -353,14 +477,50 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
             @Override
             public void onClick(View v) {
                 String courseTitle = titleEditText.getText().toString().trim();
-                String courseDescription = descriptionEditText.getText().toString().trim();
+                String courseTopics= descriptionEditText.getText().toString().trim();
                 String courseVenue = venueEditText.getText().toString().trim();
                 String selectedInstructor = instructorSpinner.getSelectedItem().toString();
-                String selectedStartDate = startDateSpinner.getSelectedItem().toString();
                 String endDate = endDateSpinner.getSelectedItem().toString();
                 String startDate = startDateSpinner.getSelectedItem().toString();
-                String deadline = deadlineSpinner.getSelectedItem().toString();
-                String selectedCourses = CoursesSpinner.getSelectedItem().toString();
+                Boolean registrationAvailable = Boolean.valueOf(availableTextView.getText().toString());
+                Boolean isFinished = Boolean.valueOf(isFinishedTextView.getText().toString());
+                String selectedCourse = CoursesSpinner.getSelectedItem().toString();
+
+                List<String> selectedPrerequisites = new ArrayList<>();
+                int selectedPosition = prerequisitesSpinner.getSelectedItemPosition();
+
+                if (selectedPosition != Spinner.INVALID_POSITION) {
+                    String selectedPrerequisite = prerequisitesSpinner.getItemAtPosition(selectedPosition).toString();
+                    selectedPrerequisites.add(selectedPrerequisite);
+                }
+
+                Course oldCourse = API.getCourse(selectedCourse);
+
+                Course course = new Course(
+                        courseTitle,
+                        courseTopics,
+                        selectedInstructor,
+                        courseVenue,
+                        selectedPrerequisites,
+                        startDate,
+                        endDate,
+                        oldCourse.getTrainees_count(), // trainees_count (set as 0 initially)
+                        oldCourse.getTrainees(), // trainees (empty list initially)
+                        isFinished, // is_finish (set as false initially)
+                        registrationAvailable // is_available (set as false initially)
+                );
+
+
+                Boolean done = API.updateCourse(selectedCourse, course);
+
+                if (done) {
+                    Toast.makeText(getApplicationContext(), "Course Updated Successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Course Update Failed", Toast.LENGTH_SHORT).show();
+                }
+
+                editCourse();
+
 
 
 
@@ -371,14 +531,6 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         dynamicContentLayout.addView(readButton);
     }
 
-    // Dummy data for Courses list
-    private List<String> getDummyCourses() {
-        List<String> Courseslist = new ArrayList<>();
-        Courseslist.add("C");
-        Courseslist.add("JAVA");
-        Courseslist.add("Python");
-        return Courseslist;
-    }
 
     private void deleteCourse() {
        // Clear the dynamic content layout
@@ -391,10 +543,13 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         dynamicContentLayout.addView(CoursesTextView);
 
         Spinner CoursesSpinner = new Spinner(this);
-        //TODO :.........................Make A Query for Courses............................................................
-        //TODO :Replace getDummyCourses()
-        List<String> CoursesList = getDummyCourses(); // Dummy data for Courses list
-        ArrayAdapter<String> CoursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, CoursesList);
+
+        List<Course> coursesList = API.getCourses();
+        List<String> coursesTitles = new ArrayList<>();
+        for (Course course : coursesList) {
+            coursesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> CoursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
         CoursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         CoursesSpinner.setAdapter(CoursesAdapter);
         dynamicContentLayout.addView(CoursesSpinner);
@@ -408,6 +563,16 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                String selectedCourses = CoursesSpinner.getSelectedItem().toString();
 
                 //TODO :.........................delete Course in the dataBase............................................................
+
+                Boolean done = API.deleteCourse(selectedCourses);
+
+                if (done) {
+                    Toast.makeText(getApplicationContext(), "Course Deleted Successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Course Not Deleted", Toast.LENGTH_SHORT).show();
+                }
+
+                deleteCourse();
 
             }
         });
@@ -428,8 +593,12 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         Spinner CoursesSpinner = new Spinner(this);
         //TODO :.........................Make A Query for Courses............................................................
         //TODO :Replace getDummyCourses()
-        List<String> CoursesList = getDummyCourses(); // Dummy data for Courses list
-        ArrayAdapter<String> CoursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, CoursesList);
+        List<Course> coursesList = API.getCourses_not_available();
+        List<String> coursesTitles = new ArrayList<>();
+        for (Course course : coursesList) {
+            coursesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> CoursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
         CoursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         CoursesSpinner.setAdapter(CoursesAdapter);
         dynamicContentLayout.addView(CoursesSpinner);
@@ -443,6 +612,21 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 String selectedCourses = CoursesSpinner.getSelectedItem().toString();
 
                 //TODO :.........................Make Course Available for Registration in the dataBase............................................................
+                for (Course course : coursesList) {
+                    if(course.getTitle().equals(selectedCourses)){
+                        course.setIs_available(true);
+                        Boolean done = API.updateCourse(course.getTitle(), course);
+
+                        if (done) {
+                            Toast.makeText(getApplicationContext(), "Course Made Available Successfully", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Course Not Made Available", Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                    }
+                }
+
+                makeCourseAvailable();
 
             }
         });
@@ -525,7 +709,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
         // Enter ID label
         TextView idLabel = new TextView(this);
-        idLabel.setText("Enter ID:");
+        idLabel.setText("Enter Username:");
         idLabel.setTypeface(idLabel.getTypeface(), Typeface.BOLD);
         dynamicContentLayout.addView(idLabel);
 
@@ -539,16 +723,42 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         viewProfileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String enteredId = idEditText.getText().toString().trim();
+                String enteredUsername = idEditText.getText().toString().trim();
 
                 //............................... TODO: Query the database based on the entered ID and retrieve the profile data
+
+                String user_type = API.getUserType(enteredUsername);
+
+                JSONObject profileData = null;
+
+                if (user_type.equals("owner")) {
+                    profileData = API.getOwnerProfile(enteredUsername);
+                } else if (user_type.equals("instructor")) {
+                    profileData = API.getInstructorProfile(enteredUsername);
+                } else if (user_type.equals("trainee")) {
+                    profileData = API.getTraineeProfile(enteredUsername);
+                }else {
+                    Toast.makeText(getApplicationContext(), "User Not Found", Toast.LENGTH_SHORT).show();
+                    viewProfiles();
+                }
+
+                String name, mobile, address;
+
+                try {
+                    name = profileData.getString("first_name") + "_" + profileData.getString("last_name");
+                    mobile = profileData.getString("phone");
+                    address = profileData.getString("address");
+
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
 
                 // Clear the dynamic content layout
                 dynamicContentLayout.removeAllViews();
 
                 // Create labels for profile information
                 TextView nameLabel = new TextView(AdmainMainActivity.this);
-                nameLabel.setText("Name: Dummy Name");//............................... TODO: Query
+                nameLabel.setText("Name: " + name);//............................... TODO: Query
                 nameLabel.setTypeface(nameLabel.getTypeface(), Typeface.BOLD);
                 nameLabel.setTextSize(22); // Increase font size
                 nameLabel.setPadding(0, 30, 0, 0); // Add top padding
@@ -559,7 +769,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 dynamicContentLayout.addView(nameLabel);
 
                 TextView mobileLabel = new TextView(AdmainMainActivity.this);
-                mobileLabel.setText("Mobile Number: Dummy Mobile Number");//............................... TODO: Query
+                mobileLabel.setText("Mobile Number: " + mobile);//............................... TODO: Query
                 mobileLabel.setTypeface(mobileLabel.getTypeface(), Typeface.BOLD);
                 mobileLabel.setTextSize(22); // Increase font size
                 mobileLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -570,7 +780,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 dynamicContentLayout.addView(mobileLabel);
 
                 TextView addressLabel = new TextView(AdmainMainActivity.this);
-                addressLabel.setText("Address: Dummy Address");//............................... TODO: Query
+                addressLabel.setText("Address: " + address);//............................... TODO: Query
                 addressLabel.setTypeface(addressLabel.getTypeface(), Typeface.BOLD);
                 addressLabel.setTextSize(22); // Increase font size
                 addressLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -584,8 +794,17 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 boolean isStudent = true; // Replace with logic to determine if the user is a student
 
                 if (!isStudent) {
+                    String specialization, degree;
+
+                    try {
+                        specialization = profileData.getString("specialization");
+                        degree = profileData.getString("degree");
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     TextView specializationLabel = new TextView(AdmainMainActivity.this);
-                    specializationLabel.setText("Specialization: Dummy Specialization");//............................... TODO: Query
+                    specializationLabel.setText("Specialization: " + specialization);//............................... TODO: Query
                     specializationLabel.setTypeface(specializationLabel.getTypeface(), Typeface.BOLD);
                     specializationLabel.setTextSize(22); // Increase font size
                     specializationLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -596,7 +815,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                     dynamicContentLayout.addView(specializationLabel);
 
                     TextView degreeLabel = new TextView(AdmainMainActivity.this);
-                    degreeLabel.setText("Degree: Dummy Degree");//............................... TODO: Query
+                    degreeLabel.setText("Degree: " + degree);//............................... TODO: Query
                     degreeLabel.setTypeface(degreeLabel.getTypeface(), Typeface.BOLD);
                     degreeLabel.setTextSize(22); // Increase font size
                     degreeLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -614,6 +833,12 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
         dynamicContentLayout.addView(viewProfileButton);
     }
 
+    private void logout(){
+        Intent intent = new Intent(AdmainMainActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
 
     private void viewCourseHistory() {
         // Clear the dynamic content layout
@@ -629,8 +854,12 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
         // Spinner for Courses
         Spinner coursesSpinner = new Spinner(this);
-        List<String> coursesList = getDummyCourses(); // Dummy data for courses list// .....................TODO: Query
-        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesList);
+        List<Course> coursesList = API.getCourses();
+        List<String> coursesTitles = new ArrayList<>();
+        for (Course course : coursesList) {
+            coursesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
         coursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         coursesSpinner.setAdapter(coursesAdapter);
         dynamicContentLayout.addView(coursesSpinner);
@@ -649,9 +878,11 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // .....................TODO: Query the database based on the selected course and retrieve the course history data
 
+                Course course = API.getCourse(selectedCourse);
+
                 // Course Name Label
                 TextView courseNameLabel = new TextView(AdmainMainActivity.this);
-                courseNameLabel.setText("Course Name: " + selectedCourse);// .....................TODO: Query
+                courseNameLabel.setText("Course Title: " + course.getTitle());// .....................TODO: Query
                 courseNameLabel.setTypeface(courseNameLabel.getTypeface(), Typeface.BOLD);
                 courseNameLabel.setTextSize(22); // Increase font size
                 courseNameLabel.setPadding(0, 30, 0, 0); // Add top padding
@@ -659,7 +890,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // Course Description Label
                 TextView courseDescriptionLabel = new TextView(AdmainMainActivity.this);
-                courseDescriptionLabel.setText("Course Description: Dummy Course Description");// .....................TODO: Query
+                courseDescriptionLabel.setText("Course Topics: " + course.getTopics());// .....................TODO: Query
                 courseDescriptionLabel.setTypeface(courseDescriptionLabel.getTypeface(), Typeface.BOLD);
                 courseDescriptionLabel.setTextSize(22); // Increase font size
                 courseDescriptionLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -667,7 +898,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // Number of Students Label
                 TextView numOfStudentsLabel = new TextView(AdmainMainActivity.this);
-                numOfStudentsLabel.setText("Number of Students: Dummy Number of Students");// .....................TODO: Query
+                numOfStudentsLabel.setText("Number of Students: " + String.valueOf(course.getTrainees_count()));// .....................TODO: Query
                 numOfStudentsLabel.setTypeface(numOfStudentsLabel.getTypeface(), Typeface.BOLD);
                 numOfStudentsLabel.setTextSize(22); // Increase font size
                 numOfStudentsLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -675,7 +906,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // Venue Label
                 TextView venueLabel = new TextView(AdmainMainActivity.this);
-                venueLabel.setText("Venue: Dummy Venue");// .....................TODO: Query
+                venueLabel.setText("Venue: " + course.getVenue());// .....................TODO: Query
                 venueLabel.setTypeface(venueLabel.getTypeface(), Typeface.BOLD);
                 venueLabel.setTextSize(22); // Increase font size
                 venueLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -683,7 +914,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // Instructor Label
                 TextView instructorLabel = new TextView(AdmainMainActivity.this);
-                instructorLabel.setText("Instructor: Dummy Instructor");// .....................TODO: Query
+                instructorLabel.setText("Instructor: " + course.getInstructor());// .....................TODO: Query
                 instructorLabel.setTypeface(instructorLabel.getTypeface(), Typeface.BOLD);
                 instructorLabel.setTextSize(22); // Increase font size
                 instructorLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -691,7 +922,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // Start Date Label
                 TextView startDateLabel = new TextView(AdmainMainActivity.this);
-                startDateLabel.setText("Start Date: Dummy Start Date");// .....................TODO: Query
+                startDateLabel.setText("Start Date: " + course.getStart_date());// .....................TODO: Query
                 startDateLabel.setTypeface(startDateLabel.getTypeface(), Typeface.BOLD);
                 startDateLabel.setTextSize(22); // Increase font size
                 startDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -699,7 +930,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // End Date Label
                 TextView endDateLabel = new TextView(AdmainMainActivity.this);
-                endDateLabel.setText("End Date: Dummy End Date");// .....................TODO: Query
+                endDateLabel.setText("End Date: " + course.getEnd_date());// .....................TODO: Query
                 endDateLabel.setTypeface(endDateLabel.getTypeface(), Typeface.BOLD);
                 endDateLabel.setTextSize(22); // Increase font size
                 endDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -707,7 +938,7 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
                 // Deadline Registration Label
                 TextView deadlineLabel = new TextView(AdmainMainActivity.this);
-                deadlineLabel.setText("Deadline Registration: Dummy Deadline");// .....................TODO: Query
+                deadlineLabel.setText("Registration Available: " + String.valueOf(course.isIs_available()));// .....................TODO: Query
                 deadlineLabel.setTypeface(deadlineLabel.getTypeface(), Typeface.BOLD);
                 deadlineLabel.setTextSize(22); // Increase font size
                 deadlineLabel.setPadding(0, 0, 0, 30); // Add bottom padding

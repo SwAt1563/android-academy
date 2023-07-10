@@ -220,6 +220,45 @@ public class API {
 
     }
 
+    public static String getUserTypeByEmail(String email){
+        String userType = null;
+
+
+        JSONObject response = API.apiObject(SERVER_URL + "account/user_type_email/" + email + "/", "GET", null);
+
+        if (response == null)
+            return null;
+
+        try {
+            userType = response.getString("user_type");
+        } catch (JSONException e) {
+            return null;
+        }
+
+        return userType;
+
+
+    }
+
+
+    public static String getUserType(String username){
+        String userType = null;
+
+
+        JSONObject response = API.apiObject(SERVER_URL + "account/user_type_username/" + username + "/", "GET", null);
+
+        if (response == null)
+            return null;
+
+        try {
+            userType = response.getString("user_type");
+        } catch (JSONException e) {
+            return null;
+        }
+
+        return userType;
+    }
+
     // ############################################################ END SIGN IN ############################################################ //
 
 
@@ -346,11 +385,13 @@ public class API {
 
         try {
             userJson = response.getJSONObject("user");
+            String user_name = userJson.getString("username");
             String firstName = userJson.getString("first_name");
             String lastName = userJson.getString("last_name");
             String userEmail = userJson.getString("email");
             String userType = userJson.getString("user_type");
 
+            user.put("username", username);
             user.put("first_name", firstName);
             user.put("last_name", lastName);
             user.put("email", userEmail);
@@ -375,6 +416,7 @@ public class API {
 
             try {
                 userJson = response.getJSONObject("user");
+                String user_name = userJson.getString("username");
                 String firstName = userJson.getString("first_name");
                 String lastName = userJson.getString("last_name");
                 String userEmail = userJson.getString("email");
@@ -385,6 +427,7 @@ public class API {
                 String phone = response.getString("phone");
                 String degree = response.getString("degree");
 
+                user.put("username", user_name);
                 user.put("first_name", firstName);
                 user.put("last_name", lastName);
                 user.put("email", userEmail);
@@ -413,6 +456,7 @@ public class API {
 
                 try {
                     userJson = response.getJSONObject("user");
+                    String user_name = userJson.getString("username");
                     String firstName = userJson.getString("first_name");
                     String lastName = userJson.getString("last_name");
                     String userEmail = userJson.getString("email");
@@ -421,6 +465,7 @@ public class API {
                     String address = response.getString("address");
                     String phone = response.getString("phone");
 
+                    user.put("username", user_name);
                     user.put("first_name", firstName);
                     user.put("last_name", lastName);
                     user.put("email", userEmail);
@@ -493,6 +538,18 @@ public class API {
     public static List<Course> getRegistrationCourses(){
 
             JSONArray response = API.apiArray(SERVER_URL + "course/registration_list/", "GET", null);
+
+            if (response == null)
+                return null;
+
+            List<Course> courses = Course.parseCourses(response);
+
+            return courses;
+    }
+
+    public static List<Course> getCourses_not_available(){
+
+            JSONArray response = API.apiArray(SERVER_URL + "course/courses_not_available/", "GET", null);
 
             if (response == null)
                 return null;
@@ -607,6 +664,8 @@ public class API {
 
 
 
+
+
     // ############################################################ END Courses ############################################################ //
 
 
@@ -651,6 +710,27 @@ public class API {
             return false;
 
         return true;
+    }
+
+
+    public static List<String> traineeEnrollmentList(){
+
+            JSONArray response = API.apiArray(SERVER_URL + "owner/enrollment_list/", "GET", null);
+
+            if (response == null)
+                return null;
+
+            List<String> enrollmentList = new ArrayList<>();
+
+            for (int i = 0; i < response.length(); i++) {
+                try {
+                    enrollmentList.add(response.getString(i));
+                } catch (JSONException e) {
+                    return null;
+                }
+            }
+
+            return enrollmentList;
     }
 
 

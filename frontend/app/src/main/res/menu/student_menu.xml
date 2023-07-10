@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/notification_available_course"
+            android:id="@+id/trainee_notification"
             android:icon="@android:drawable/ic_dialog_info"
-            android:title="Available New Courses: Notification" />
+            android:title="Trainee Notification" />
         <item
             android:id="@+id/view_courses"
             android:icon="@android:drawable/ic_menu_view"
@@ -14,10 +14,7 @@
             android:id="@+id/enroll_in_course"
             android:icon="@android:drawable/ic_menu_add"
             android:title="Enroll in Course" />
-        <item
-            android:id="@+id/registration_notification"
-            android:icon="@android:drawable/ic_menu_agenda"
-            android:title="Registration Accept/Reject: Notification" />
+
         <item
             android:id="@+id/view_studied_courses"
             android:icon="@android:drawable/ic_menu_recent_history"
@@ -30,9 +27,11 @@
             android:id="@+id/view_profile"
             android:icon="@android:drawable/ic_menu_info_details"
             android:title="View Profile" />
+
         <item
-            android:id="@+id/update_enrolled_courses_notification"
-            android:icon="@android:drawable/ic_menu_edit"
-            android:title="Update On Enrolled Courses: Notification" />
+            android:id="@+id/logout2"
+            android:icon="@android:drawable/ic_lock_power_off"
+            android:title="Logout" />
+
     </group>
 </menu>

@@ -1,5 +1,6 @@
 package birzeit.edu.trainingcenter;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -67,9 +68,9 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.notification_available_course:
+            case R.id.trainee_notification:
                 // Handle notification_available_course action
-                viewAvailableCourses();
+                viewTraineeNotifications();
                 break;
             case R.id.view_courses:
                 // Handle view_courses action
@@ -79,10 +80,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
                 // Handle enroll_in_course action
                 enrollInCourse();
                 break;
-            case R.id.registration_notification:
-                // Handle registration_notification action
-                registrationNotification();
-                break;
+
             case R.id.view_studied_courses:
                 // Handle view_studied_courses action
                 viewStudiedCourses();
@@ -95,21 +93,46 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
                 // Handle view_profile action
                 viewProfile();
                 break;
-            case R.id.update_enrolled_courses_notification:
-                // Handle update_enrolled_courses_notification action
-                updateEnrolledCoursesNotification();
+
+            case R.id.logout2:
+                // Handle create_course action
+                logout();
                 break;
+
         }
 
         drawerLayout.closeDrawers();
         return true;
     }
 
-    private void viewAvailableCourses() {
+    private void viewTraineeNotifications() {
         // Perform logic for viewing available courses
+
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(StudentMainActivity.this);
+        String trainee_username = sharedPrefManager.readString("username", "");
+
+        List<String> notificationList = API.getUserNotifications(trainee_username);//-------TODO
+
 
         // Clear the dynamic content layout
         dynamicContentLayout.removeAllViews();
+
+        // Create TextViews for students list
+        for (String notification : notificationList) {
+
+
+            // Course Name Label
+            TextView notificationLabel = new TextView(StudentMainActivity.this);
+            notificationLabel.setText(notification);// .....................TODO: Query
+            notificationLabel.setTypeface(notificationLabel.getTypeface(), Typeface.BOLD);
+            notificationLabel.setTextSize(22); // Increase font size
+            notificationLabel.setPadding(0, 30, 0, 0); // Add top padding
+            dynamicContentLayout.addView(notificationLabel);
+
+        }
+
+
+
     }
 
     private void viewCourseDetails() {
@@ -126,8 +149,12 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
             // Spinner for Courses
             Spinner coursesSpinner = new Spinner(this);
-            List<String> coursesList = getDummyCourses(); // Dummy data for courses list// .....................TODO: Query
-            ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesList);
+            List<Course> coursesList = API.getCourses();//-------TODO
+            List<String> coursesTitles = new ArrayList<String>();
+            for (Course course : coursesList) {
+                coursesTitles.add(course.getTitle());
+            }
+            ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
             coursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             coursesSpinner.setAdapter(coursesAdapter);
             dynamicContentLayout.addView(coursesSpinner);
@@ -146,10 +173,12 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     String selectedCourse = coursesSpinner.getSelectedItem().toString();
 
-                    // .....................TODO: Query the database based on the selected course
+                    Course course = API.getCourse(selectedCourse);//-------TODO
+
+
                     // Course Name Label
                     TextView courseNameLabel = new TextView(StudentMainActivity.this);
-                    courseNameLabel.setText("Course Name: " + selectedCourse);// .....................TODO: Query
+                    courseNameLabel.setText("Course Name: " + course.getTitle());// .....................TODO: Query
                     courseNameLabel.setTypeface(courseNameLabel.getTypeface(), Typeface.BOLD);
                     courseNameLabel.setTextSize(22); // Increase font size
                     courseNameLabel.setPadding(0, 30, 0, 0); // Add top padding
@@ -157,7 +186,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     // Course Description Label
                     TextView courseDescriptionLabel = new TextView(StudentMainActivity.this);
-                    courseDescriptionLabel.setText("Course Description: Dummy Course Description");// .....................TODO: Query
+                    courseDescriptionLabel.setText("Course Topics: " + course.getTopics());// .....................TODO: Query
                     courseDescriptionLabel.setTypeface(courseDescriptionLabel.getTypeface(), Typeface.BOLD);
                     courseDescriptionLabel.setTextSize(22); // Increase font size
                     courseDescriptionLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -165,7 +194,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     // Number of Students Label
                     TextView numOfStudentsLabel = new TextView(StudentMainActivity.this);
-                    numOfStudentsLabel.setText("Number of Students: Dummy Number of Students");// .....................TODO: Query
+                    numOfStudentsLabel.setText("Number of Students: " + String.valueOf(course.getTrainees_count()));// .....................TODO: Query
                     numOfStudentsLabel.setTypeface(numOfStudentsLabel.getTypeface(), Typeface.BOLD);
                     numOfStudentsLabel.setTextSize(22); // Increase font size
                     numOfStudentsLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -173,7 +202,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     // Venue Label
                     TextView venueLabel = new TextView(StudentMainActivity.this);
-                    venueLabel.setText("Venue: Dummy Venue");// .....................TODO: Query
+                    venueLabel.setText("Venue: " + course.getVenue());// .....................TODO: Query
                     venueLabel.setTypeface(venueLabel.getTypeface(), Typeface.BOLD);
                     venueLabel.setTextSize(22); // Increase font size
                     venueLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -181,7 +210,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     // Instructor Label
                     TextView instructorLabel = new TextView(StudentMainActivity.this);
-                    instructorLabel.setText("Instructor: Dummy Instructor");// .....................TODO: Query
+                    instructorLabel.setText("Instructor: " + course.getInstructor());// .....................TODO: Query
                     instructorLabel.setTypeface(instructorLabel.getTypeface(), Typeface.BOLD);
                     instructorLabel.setTextSize(22); // Increase font size
                     instructorLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -189,7 +218,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     // Start Date Label
                     TextView startDateLabel = new TextView(StudentMainActivity.this);
-                    startDateLabel.setText("Start Date: Dummy Start Date");// .....................TODO: Query
+                    startDateLabel.setText("Start Date: " + course.getStart_date());// .....................TODO: Query
                     startDateLabel.setTypeface(startDateLabel.getTypeface(), Typeface.BOLD);
                     startDateLabel.setTextSize(22); // Increase font size
                     startDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -197,7 +226,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     // End Date Label
                     TextView endDateLabel = new TextView(StudentMainActivity.this);
-                    endDateLabel.setText("End Date: Dummy End Date");// .....................TODO: Query
+                    endDateLabel.setText("End Date: " + course.getEnd_date());// .....................TODO: Query
                     endDateLabel.setTypeface(endDateLabel.getTypeface(), Typeface.BOLD);
                     endDateLabel.setTextSize(22); // Increase font size
                     endDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -205,7 +234,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                     // Deadline Registration Label
                     TextView deadlineLabel = new TextView(StudentMainActivity.this);
-                    deadlineLabel.setText("Deadline Registration: Dummy Deadline");// .....................TODO: Query
+                    deadlineLabel.setText("Registration Available: " + String.valueOf(course.isIs_available()));// .....................TODO: Query
                     deadlineLabel.setTypeface(deadlineLabel.getTypeface(), Typeface.BOLD);
                     deadlineLabel.setTextSize(22); // Increase font size
                     deadlineLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -218,14 +247,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
             dynamicContentLayout.addView(DetailsButton);
         }
 
-    // Dummy data for Courses list
-    private List<String> getDummyCourses() {
-        List<String> Courseslist = new ArrayList<>();
-        Courseslist.add("C");
-        Courseslist.add("JAVA");
-        Courseslist.add("Python");
-        return Courseslist;
-    }
+
 
     private void enrollInCourse() {
         // Perform logic for enrolling in a course
@@ -243,8 +265,12 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
         // Spinner for Courses
         Spinner coursesSpinner = new Spinner(this);
-        List<String> coursesList = getDummyCourses(); // Dummy data for courses list// .....................TODO: Query
-        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesList);
+        List<Course> coursesList = API.getRegistrationCourses();//-------TODO
+        List<String> coursesTitles = new ArrayList<String>();
+        for (Course course : coursesList) {
+            coursesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
         coursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         coursesSpinner.setAdapter(coursesAdapter);
         dynamicContentLayout.addView(coursesSpinner);
@@ -262,10 +288,23 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
                 String selectedCourse = coursesSpinner.getSelectedItem().toString();
 
                 // .....................TODO: Query the database based on the selected course
+                SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(StudentMainActivity.this);
+                String trainee_username = sharedPrefManager.readString("username", "");
+
+                Boolean done = API.traineeEnroll(trainee_username, selectedCourse);//.....................TODO: Query
 
 
-                String message = "Enrollment in the course: " + selectedCourse + "\nSent to Admin";
-                Toast.makeText(StudentMainActivity.this, message, Toast.LENGTH_SHORT).show();
+                if(done){
+                    String message = "Enrollment in the course: " + selectedCourse + "\nSent to Admin";
+                    Toast.makeText(StudentMainActivity.this, message, Toast.LENGTH_SHORT).show();
+                }else{
+                    String message = "Enrollment in the course: " + selectedCourse +
+                            "\nFailed, check if you finish it prequisites, of if you have other course in same time";
+                    Toast.makeText(StudentMainActivity.this, message, Toast.LENGTH_SHORT).show();
+                }
+
+
+
             }
         });
 
@@ -273,12 +312,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
     }
 
 
-    private void registrationNotification() {
-        // Perform logic for registration notification
 
-        // Clear the dynamic content layout
-        dynamicContentLayout.removeAllViews();
-    }
 
     private void viewStudiedCourses() {
         // Clear the dynamic content layout
@@ -294,8 +328,16 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
         // Spinner for Courses
         Spinner coursesSpinner = new Spinner(this);
-        List<String> coursesList = getDummyCourses(); // Dummy data for courses list// .....................TODO: Query
-        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesList);
+
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(StudentMainActivity.this);
+        String trainee_username = sharedPrefManager.readString("username", "");
+
+        List<Course> coursesList = API.getTraineeCourses(trainee_username); // .....................TODO: Query
+        List<String> coursesTitles = new ArrayList<String>();
+        for (Course course : coursesList) {
+            coursesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
         coursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         coursesSpinner.setAdapter(coursesAdapter);
         dynamicContentLayout.addView(coursesSpinner);
@@ -317,9 +359,11 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // .....................TODO: Query the database based on the selected course
 
+                Course course = API.getCourse(selectedCourse);// .....................TODO: Query
+
                 // Course Name Label
                 TextView courseNameLabel = new TextView(StudentMainActivity.this);
-                courseNameLabel.setText("Course Name: " + selectedCourse);// .....................TODO: Query
+                courseNameLabel.setText("Course Title: " + course.getTitle());// .....................TODO: Query
                 courseNameLabel.setTypeface(courseNameLabel.getTypeface(), Typeface.BOLD);
                 courseNameLabel.setTextSize(22); // Increase font size
                 courseNameLabel.setPadding(0, 30, 0, 0); // Add top padding
@@ -327,7 +371,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Course Description Label
                 TextView courseDescriptionLabel = new TextView(StudentMainActivity.this);
-                courseDescriptionLabel.setText("Course Description: Dummy Course Description");// .....................TODO: Query
+                courseDescriptionLabel.setText("Course Topics: " + course.getTopics());// .....................TODO: Query
                 courseDescriptionLabel.setTypeface(courseDescriptionLabel.getTypeface(), Typeface.BOLD);
                 courseDescriptionLabel.setTextSize(22); // Increase font size
                 courseDescriptionLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -335,7 +379,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Number of Students Label
                 TextView numOfStudentsLabel = new TextView(StudentMainActivity.this);
-                numOfStudentsLabel.setText("Number of Students: Dummy Number of Students");// .....................TODO: Query
+                numOfStudentsLabel.setText("Number of Students: " + String.valueOf(course.getTrainees_count()));// .....................TODO: Query
                 numOfStudentsLabel.setTypeface(numOfStudentsLabel.getTypeface(), Typeface.BOLD);
                 numOfStudentsLabel.setTextSize(22); // Increase font size
                 numOfStudentsLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -343,7 +387,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Venue Label
                 TextView venueLabel = new TextView(StudentMainActivity.this);
-                venueLabel.setText("Venue: Dummy Venue");// .....................TODO: Query
+                venueLabel.setText("Venue: " + course.getVenue());// .....................TODO: Query
                 venueLabel.setTypeface(venueLabel.getTypeface(), Typeface.BOLD);
                 venueLabel.setTextSize(22); // Increase font size
                 venueLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -351,7 +395,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Instructor Label
                 TextView instructorLabel = new TextView(StudentMainActivity.this);
-                instructorLabel.setText("Instructor: Dummy Instructor");// .....................TODO: Query
+                instructorLabel.setText("Instructor: " + course.getInstructor());// .....................TODO: Query
                 instructorLabel.setTypeface(instructorLabel.getTypeface(), Typeface.BOLD);
                 instructorLabel.setTextSize(22); // Increase font size
                 instructorLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -359,7 +403,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Start Date Label
                 TextView startDateLabel = new TextView(StudentMainActivity.this);
-                startDateLabel.setText("Start Date: Dummy Start Date");// .....................TODO: Query
+                startDateLabel.setText("Start Date: " + course.getStart_date());// .....................TODO: Query
                 startDateLabel.setTypeface(startDateLabel.getTypeface(), Typeface.BOLD);
                 startDateLabel.setTextSize(22); // Increase font size
                 startDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -367,7 +411,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // End Date Label
                 TextView endDateLabel = new TextView(StudentMainActivity.this);
-                endDateLabel.setText("End Date: Dummy End Date");// .....................TODO: Query
+                endDateLabel.setText("End Date: " + course.getEnd_date());// .....................TODO: Query
                 endDateLabel.setTypeface(endDateLabel.getTypeface(), Typeface.BOLD);
                 endDateLabel.setTextSize(22); // Increase font size
                 endDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -375,20 +419,13 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Deadline Registration Label
                 TextView deadlineLabel = new TextView(StudentMainActivity.this);
-                deadlineLabel.setText("Deadline Registration: Dummy Deadline");// .....................TODO: Query
+                deadlineLabel.setText("Registration Available: " + String.valueOf(course.isIs_available()));// .....................TODO: Query
                 deadlineLabel.setTypeface(deadlineLabel.getTypeface(), Typeface.BOLD);
                 deadlineLabel.setTextSize(22); // Increase font size
                 deadlineLabel.setPadding(0, 0, 0, 30); // Add bottom padding
                 dynamicContentLayout.addView(deadlineLabel);
 
 
-                //  Grade
-                TextView GradeLabel = new TextView(StudentMainActivity.this);
-                GradeLabel.setText("Grade: Dummy Grade");// .....................TODO: Query
-                GradeLabel.setTypeface(GradeLabel.getTypeface(), Typeface.BOLD);
-                GradeLabel.setTextSize(22); // Increase font size
-                GradeLabel.setPadding(0, 0, 0, 30); // Add bottom padding
-                dynamicContentLayout.addView(GradeLabel);
 
                 // Show Back Button
                 Back.setText("Back");
@@ -406,6 +443,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
         dynamicContentLayout.addView(DetailsButton);    }
 
+    // courses that trainee finished
     private void viewCourseHistory() {
         // Clear the dynamic content layout
         dynamicContentLayout.removeAllViews();
@@ -420,8 +458,21 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
         // Spinner for Courses
         Spinner coursesSpinner = new Spinner(this);
-        List<String> coursesList = getDummyCourses(); // Dummy data for courses list// .....................TODO: Query
-        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesList);
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(StudentMainActivity.this);
+        String trainee_username = sharedPrefManager.readString("username", "");
+
+        List<Course> coursesList = API.getTraineeCourses(trainee_username); // Dummy data for courses list// .....................TODO: Query
+        List<Course> finishedCoursesList = new ArrayList<Course>();
+        for (Course course : coursesList) {
+            if (course.isIs_finish()) {
+                finishedCoursesList.add(course);
+            }
+        }
+        List<String> coursesTitles = new ArrayList<>();
+        for (Course course : finishedCoursesList) {
+            coursesTitles.add(course.getTitle());
+        }
+        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
         coursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         coursesSpinner.setAdapter(coursesAdapter);
         dynamicContentLayout.addView(coursesSpinner);
@@ -442,9 +493,11 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // .....................TODO: Query the database based on the selected course and retrieve the course history data
 
+                Course course = API.getCourse(selectedCourse);
+
                 // Course Name Label
                 TextView courseNameLabel = new TextView(StudentMainActivity.this);
-                courseNameLabel.setText("Course Name: " + selectedCourse);// .....................TODO: Query
+                courseNameLabel.setText("Course Title: " + course.getTitle());// .....................TODO: Query
                 courseNameLabel.setTypeface(courseNameLabel.getTypeface(), Typeface.BOLD);
                 courseNameLabel.setTextSize(22); // Increase font size
                 courseNameLabel.setPadding(0, 30, 0, 0); // Add top padding
@@ -452,7 +505,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Course Description Label
                 TextView courseDescriptionLabel = new TextView(StudentMainActivity.this);
-                courseDescriptionLabel.setText("Course Description: Dummy Course Description");// .....................TODO: Query
+                courseDescriptionLabel.setText("Course Topics: " + course.getTopics());// .....................TODO: Query
                 courseDescriptionLabel.setTypeface(courseDescriptionLabel.getTypeface(), Typeface.BOLD);
                 courseDescriptionLabel.setTextSize(22); // Increase font size
                 courseDescriptionLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -460,7 +513,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Number of Students Label
                 TextView numOfStudentsLabel = new TextView(StudentMainActivity.this);
-                numOfStudentsLabel.setText("Number of Students: Dummy Number of Students");// .....................TODO: Query
+                numOfStudentsLabel.setText("Number of Students: " + String.valueOf(course.getTrainees_count()));// .....................TODO: Query
                 numOfStudentsLabel.setTypeface(numOfStudentsLabel.getTypeface(), Typeface.BOLD);
                 numOfStudentsLabel.setTextSize(22); // Increase font size
                 numOfStudentsLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -468,7 +521,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Venue Label
                 TextView venueLabel = new TextView(StudentMainActivity.this);
-                venueLabel.setText("Venue: Dummy Venue");// .....................TODO: Query
+                venueLabel.setText("Venue: " + course.getVenue());// .....................TODO: Query
                 venueLabel.setTypeface(venueLabel.getTypeface(), Typeface.BOLD);
                 venueLabel.setTextSize(22); // Increase font size
                 venueLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -476,7 +529,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Instructor Label
                 TextView instructorLabel = new TextView(StudentMainActivity.this);
-                instructorLabel.setText("Instructor: Dummy Instructor");// .....................TODO: Query
+                instructorLabel.setText("Instructor: " + course.getInstructor());// .....................TODO: Query
                 instructorLabel.setTypeface(instructorLabel.getTypeface(), Typeface.BOLD);
                 instructorLabel.setTextSize(22); // Increase font size
                 instructorLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -484,7 +537,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Start Date Label
                 TextView startDateLabel = new TextView(StudentMainActivity.this);
-                startDateLabel.setText("Start Date: Dummy Start Date");// .....................TODO: Query
+                startDateLabel.setText("Start Date: " + course.getStart_date());// .....................TODO: Query
                 startDateLabel.setTypeface(startDateLabel.getTypeface(), Typeface.BOLD);
                 startDateLabel.setTextSize(22); // Increase font size
                 startDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -492,7 +545,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // End Date Label
                 TextView endDateLabel = new TextView(StudentMainActivity.this);
-                endDateLabel.setText("End Date: Dummy End Date");// .....................TODO: Query
+                endDateLabel.setText("End Date: " + course.getEnd_date());// .....................TODO: Query
                 endDateLabel.setTypeface(endDateLabel.getTypeface(), Typeface.BOLD);
                 endDateLabel.setTextSize(22); // Increase font size
                 endDateLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -500,7 +553,7 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
 
                 // Deadline Registration Label
                 TextView deadlineLabel = new TextView(StudentMainActivity.this);
-                deadlineLabel.setText("Deadline Registration: Dummy Deadline");// .....................TODO: Query
+                deadlineLabel.setText("Registration Available: " + String.valueOf(course.isIs_available()));// .....................TODO: Query
                 deadlineLabel.setTypeface(deadlineLabel.getTypeface(), Typeface.BOLD);
                 deadlineLabel.setTextSize(22); // Increase font size
                 deadlineLabel.setPadding(0, 0, 0, 30); // Add bottom padding
@@ -525,20 +578,38 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
     }
 
     public void viewProfile() {
-        Student student= getDummyProfile();// .....................TODO: Query the database
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(StudentMainActivity.this);
+        String trainee_username = sharedPrefManager.readString("username", "");
+        String trainee_first_name = sharedPrefManager.readString("first_name", "");
+        String trainee_last_name = sharedPrefManager.readString("last_name", "");
+        String trainee_email = sharedPrefManager.readString("email", "");
+        String trainee_mobile_number = sharedPrefManager.readString("mobile_number", "");
+        String trainee_address = sharedPrefManager.readString("address", "");
 
         // Clear the dynamic content layout
         dynamicContentLayout.removeAllViews();
 
         // Create the labels
-        TextView nameLabel = createLabel("Name:");
+        TextView usernameLabel = createLabel("Username:");
+        TextView firstNameLabel = createLabel("First Name:");
+        TextView lastNameLabel = createLabel("Last Name:");
+        TextView emailLabel = createLabel("Email:");
         TextView mobileLabel = createLabel("Mobile Number:");
         TextView addressLabel = createLabel("Address:");
 
         // Create the edit texts
-        EditText nameEditText = createEditText(student.getName());
-        EditText mobileEditText = createEditText(student.getMobile_number()+"");
-        EditText addressEditText = createEditText(student.getAddress());
+        EditText usernameEditText = createEditText(trainee_username);
+        EditText firstNameEditText = createEditText(trainee_first_name);
+        EditText lastNameEditText = createEditText(trainee_last_name);
+        EditText emailEditText = createEditText(trainee_email);
+        EditText mobileEditText = createEditText(trainee_mobile_number);
+        EditText addressEditText = createEditText(trainee_address);
+
+        // Set the other edit texts as read-only
+        emailEditText.setEnabled(false);
+        usernameEditText.setEnabled(false);
+        mobileEditText.setEnabled(false);
+        addressEditText.setEnabled(false);
 
         // Create the edit button
         Button editButton = createButton("Edit");
@@ -548,9 +619,23 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
             @Override
             public void onClick(View v) {
                 // Read the values from the edit texts
-                String name = nameEditText.getText().toString();
-                String mobileNumber = mobileEditText.getText().toString();
-                String address = addressEditText.getText().toString();
+
+                String firstName = firstNameEditText.getText().toString();
+                String lastName = lastNameEditText.getText().toString();
+
+
+
+
+                Boolean done = API.profileUpdate( firstName, lastName, trainee_username);
+
+                if(done){
+                    sharedPrefManager.writeString("first_name", firstName);
+                    sharedPrefManager.writeString("last_name", lastName);
+                    Toast.makeText(StudentMainActivity.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(StudentMainActivity.this, "Profile Not Updated", Toast.LENGTH_SHORT).show();
+                }
+
 
                 // Do something with the values (e.g., update the profile)
                 // .....................TODO: Query the database based and update
@@ -558,14 +643,27 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
         });
 
         // Add the views to the dynamic content layout
-        dynamicContentLayout.addView(nameLabel);
-        dynamicContentLayout.addView(nameEditText);
+        dynamicContentLayout.addView(usernameLabel);
+        dynamicContentLayout.addView(usernameEditText);
+        dynamicContentLayout.addView(firstNameLabel);
+        dynamicContentLayout.addView(firstNameEditText);
+        dynamicContentLayout.addView(lastNameLabel);
+        dynamicContentLayout.addView(lastNameEditText);
+        dynamicContentLayout.addView(emailLabel);
+        dynamicContentLayout.addView(emailEditText);
         dynamicContentLayout.addView(mobileLabel);
         dynamicContentLayout.addView(mobileEditText);
         dynamicContentLayout.addView(addressLabel);
         dynamicContentLayout.addView(addressEditText);
         dynamicContentLayout.addView(editButton);
     }
+
+    private void logout(){
+        Intent intent = new Intent(StudentMainActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
 
     private TextView createLabel(String text) {
         TextView label = new TextView(this);
@@ -594,15 +692,6 @@ public class StudentMainActivity extends AppCompatActivity implements Navigation
     }
 
 
-    private Student getDummyProfile() {
-        // Dummy data for getDummyProfile list
-        Student student = new Student("Mohammad mualla",101,"Rammalla");
-        return student;
-    }
-    private void updateEnrolledCoursesNotification() {
-        // Perform logic for updating enrolled courses notification
 
-        // Clear the dynamic content layout
-        dynamicContentLayout.removeAllViews();
-    }
+
 }

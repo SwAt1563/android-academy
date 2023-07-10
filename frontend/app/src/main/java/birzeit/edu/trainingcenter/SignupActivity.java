@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -23,15 +24,61 @@ public class SignupActivity extends AppCompatActivity {
     private Spinner userTypeSpinner;
     private LinearLayout adminLayout, traineeLayout, instructorLayout;
     // Admin fields
-    private EditText adminEmailField, adminFirstNameField, adminLastNameField, adminPasswordField, adminConfirmPasswordField;
+    private EditText  adminEmailField, adminFirstNameField, adminLastNameField, adminPasswordField, adminConfirmPasswordField;
     // Trainee fields
-    private EditText emailField, firstNameField, lastNameField, passwordField, confirmPasswordField, mobileNumberField, addressField;
+    private EditText  emailField, firstNameField, lastNameField, passwordField, confirmPasswordField, mobileNumberField, addressField;
     // Instructor fields
-    private EditText instructorEmailField, instructorFirstNameField, instructorLastNameField, instructorPasswordField, instructorConfirmPasswordField;
-    private EditText instructorMobileNumberField, instructorAddressField, specializationField, degreeField;
+    private EditText  instructorEmailField, instructorFirstNameField, instructorLastNameField, instructorPasswordField, instructorConfirmPasswordField, instructorMobileNumberField, instructorAddressField, specializationField;
     private Button signupButton;
     private Spinner degreeSpinner;
+
+    private String selectedDegree;
     private String UserType;
+
+    private String checkFields(String firstName, String lastName, String email, String password, String confirmPassword) {
+        if (!isValidFirstName(firstName)) {
+            return "First name must be between 3 and 20 characters.";
+        }
+        if (!isValidLastName(lastName)) {
+            return "Last name must be between 3 and 20 characters.";
+        }
+        if (!isValidEmail(email)) {
+            return "Invalid email format.";
+        }
+        if (!isValidPassword(password)) {
+            return "Password must be between 8 and 15 characters and contain at least one number, one lowercase letter, and one uppercase letter.";
+        }
+        if (!password.equals(confirmPassword)) {
+            return "Passwords do not match.";
+        }
+        return "accepted"; // All fields are accepted
+    }
+
+        private boolean isValidFirstName(String firstName) {
+            int minLength = 3;
+            int maxLength = 20;
+            return firstName.length() >= minLength && firstName.length() <= maxLength;
+        }
+
+        private boolean isValidLastName(String lastName) {
+            int minLength = 3;
+            int maxLength = 20;
+            return lastName.length() >= minLength && lastName.length() <= maxLength;
+        }
+
+        private boolean isValidEmail(String email) {
+            // Use a regular expression pattern to validate email format
+            String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+            return email.matches(emailRegex);
+        }
+
+        private boolean isValidPassword(String password) {
+            int minLength = 8;
+            int maxLength = 15;
+            String passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{" + minLength + "," + maxLength + "}$";
+            return password.matches(passwordRegex);
+        }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +122,7 @@ public class SignupActivity extends AppCompatActivity {
 
         // instructor
         //degreeSpinner for instructor
+
         ArrayAdapter<CharSequence> degreeAdapter = ArrayAdapter.createFromResource(this,
                 R.array.degree_array, android.R.layout.simple_spinner_item);
         degreeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -82,7 +130,7 @@ public class SignupActivity extends AppCompatActivity {
         degreeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedDegree = parent.getItemAtPosition(position).toString();
+                selectedDegree =  parent.getItemAtPosition(position).toString();
                 // Do something with the selected degree
             }
 
@@ -92,21 +140,6 @@ public class SignupActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-        // instructor
-        // Set up the instructor courses that the instructor can teach
-        ListView coursesListView = findViewById(R.id.coursesListView);
-        List<String> courseList = Arrays.asList("C", "Python", "Java", "AI"); // TODO : QUERY
-        CourseAdapter courseAdapter = new CourseAdapter(this, courseList);
-        coursesListView.setAdapter(courseAdapter);
-
-        // To get the checked boxes for the courses that the instructor can teach
-        Set<String> selectedCourses = courseAdapter.getSelectedCourses();
-        for (String course : selectedCourses) {
-            // Add to database
-        }
 
 
 
@@ -136,12 +169,7 @@ public class SignupActivity extends AppCompatActivity {
             }
         });
 
-        signupButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Perform signup logic here
-            }
-        });
+
 
 
 
@@ -153,17 +181,95 @@ public class SignupActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     if (UserType.equals("Admin")) {
-                        Intent intent = new Intent(SignupActivity.this, AdmainMainActivity.class);
-                        startActivity(intent);
+                        String adminEmail = adminEmailField.getText().toString();
+                        String adminFirstName = adminFirstNameField.getText().toString();
+                        String adminLastName = adminLastNameField.getText().toString();
+                        String adminPassword = adminPasswordField.getText().toString();
+                        String adminConfirmPassword = adminConfirmPasswordField.getText().toString();
+                        String adminUserName = adminFirstName + "_" + adminLastName;
+
+
+                        String checkFields = checkFields(adminFirstName, adminLastName, adminEmail, adminPassword, adminConfirmPassword);
+
+                        if (checkFields.equals("accepted")) {
+                            // Add the user to the database
+
+                            Boolean done = API.ownerSignUp(adminFirstName, adminLastName, adminUserName, adminEmail, adminPassword);
+
+                            if (done) {
+                                Toast.makeText(SignupActivity.this, "Admin added successfully", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(SignupActivity.this, "Failed to add admin", Toast.LENGTH_SHORT).show();
+                            }
+
+
+
+                        } else {
+                            Toast.makeText(SignupActivity.this, checkFields, Toast.LENGTH_SHORT).show();
+                        }
+
 
                     } else if (UserType.equals("Trainee")) {
-                        Intent intent = new Intent(SignupActivity.this, StudentMainActivity.class);
-                        startActivity(intent);
+
+                        String email = emailField.getText().toString();
+                        String firstName = firstNameField.getText().toString();
+                        String lastName = lastNameField.getText().toString();
+                        String password = passwordField.getText().toString();
+                        String confirmPassword = confirmPasswordField.getText().toString();
+                        String mobileNumber = mobileNumberField.getText().toString();
+                        String address = addressField.getText().toString();
+                        String userName = firstName + "_" + lastName;
+
+                        String checkFields = checkFields(firstName, lastName, email, password, confirmPassword);
+
+                        if (checkFields.equals("accepted")) {
+                            // Add the user to the database
+                            Boolean done = API.traineeSignUp(firstName, lastName, userName, email, password, address, mobileNumber);
+
+                            if (done) {
+                                Toast.makeText(SignupActivity.this, "Trainee added successfully", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(SignupActivity.this, "Failed to add trainee", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+                            Toast.makeText(SignupActivity.this, checkFields, Toast.LENGTH_SHORT).show();
+                        }
+
 
                     } else if (UserType.equals("Instructor")) {
-                        Intent intent = new Intent(SignupActivity.this, InstructorMainActivity.class);
-                        startActivity(intent);
+
+                        String email = instructorEmailField.getText().toString();
+                        String firstName = instructorFirstNameField.getText().toString();
+                        String lastName = instructorLastNameField.getText().toString();
+                        String password = instructorPasswordField.getText().toString();
+                        String confirmPassword = instructorConfirmPasswordField.getText().toString();
+                        String mobileNumber = instructorMobileNumberField.getText().toString();
+                        String address = instructorAddressField.getText().toString();
+                        String userName = firstName + "_" + lastName;
+                        String specialization = specializationField.getText().toString();
+                        String degree = selectedDegree;
+
+                        String checkFields = checkFields(firstName, lastName, email, password, confirmPassword);
+
+                        if (checkFields.equals("accepted")) {
+                            // Add the user to the database
+                            Boolean done = API.instructorSignUp(firstName, lastName, userName, email, password, specialization, address, mobileNumber, degree);
+
+                            if (done) {
+                                Toast.makeText(SignupActivity.this, "Instructor added successfully", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(SignupActivity.this, "Failed to add instructor", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+                            Toast.makeText(SignupActivity.this, checkFields, Toast.LENGTH_SHORT).show();
+                        }
+
                     }
+
+                    Intent intent = new Intent(SignupActivity.this, MainActivity.class);
+                    startActivity(intent);
 
 
                 }

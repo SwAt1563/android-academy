@@ -46,3 +46,21 @@ class UserAccountUpdateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserTypeUsername(APIView):
+    def get(self, request, username):
+        user = UserAccount.objects.get(username=username)
+        if not user:
+            return Response({"detail": "User does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"user_type": user.user_type}, status=status.HTTP_200_OK)
+
+
+class UserTypeEmail(APIView):
+    def get(self, request, email):
+        user = UserAccount.objects.get(email=email)
+        if not user:
+            return Response({"detail": "User does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"user_type": user.user_type}, status=status.HTTP_200_OK)

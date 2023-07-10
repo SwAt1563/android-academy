@@ -28,5 +28,10 @@
             android:id="@+id/view_course_history"
             android:icon="@android:drawable/ic_menu_recent_history"
             android:title="View Course History" />
+
+        <item
+            android:id="@+id/logout3"
+            android:icon="@android:drawable/ic_lock_power_off"
+            android:title="Logout" />
     </group>
 </menu>

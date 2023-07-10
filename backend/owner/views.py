@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from trainee.models import Trainee, Enrollment
 from course.models import Course
+from account.models import UserAccount
+from course.serializers import CourseSerializer
 
 # Create your views here.
 
@@ -52,3 +54,18 @@ class EnrollmentStatusView(APIView):
 
 
         return Response({"detail": "Enrollment successful Approved."}, status=status.HTTP_201_CREATED)
+
+
+
+
+
+class TraineeEnrollmentList(APIView):
+    def get(self, request):
+        enrollments = Enrollment.objects.filter(status='Pending')
+        response = [f"{enrollment.course.title},{enrollment.trainee}" for enrollment in enrollments]
+        return Response(response, status=status.HTTP_200_OK)
+
+
+
+
+

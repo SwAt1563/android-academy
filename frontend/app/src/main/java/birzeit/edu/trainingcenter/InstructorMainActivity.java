@@ -1,15 +1,19 @@
 package birzeit.edu.trainingcenter;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -18,6 +22,9 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,13 +60,7 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
         /// Start with profile information
         showProfile();
 
-        // update tabels in BataBase when this button presseed
-        editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // update tabels in BataBase when this button presseed
-            }
-        });
+
     }
 
     @Override
@@ -73,6 +74,10 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.instructor_notifications:
+                // Handle courses taught action
+                viewInstructorNotifications();
+                break;
             case R.id.nav_courses_taught:
                 // Handle courses taught action
                 showCoursesTaught();
@@ -89,6 +94,10 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
                 // Handle profile action
                 showProfile();
                 break;
+            case R.id.logout1:
+                // Handle create_course action
+                logout();
+                break;
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);
@@ -96,17 +105,50 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
     }
 
 
+    private void viewInstructorNotifications() {
+        // Perform logic for viewing available courses
+
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(InstructorMainActivity.this);
+        String instructor_username = sharedPrefManager.readString("username", "");
+
+        List<String> notificationList = API.getUserNotifications(instructor_username);//-------TODO
+
+        // Clear the dynamic content layout
+        dynamicContentLayout.removeAllViews();
+
+        // Create TextViews for students list
+        for (String notification : notificationList) {
+
+
+            // Course Name Label
+            TextView notificationLabel = new TextView(InstructorMainActivity.this);
+            notificationLabel.setText(notification);// .....................TODO: Query
+            notificationLabel.setTypeface(notificationLabel.getTypeface(), Typeface.BOLD);
+            notificationLabel.setTextSize(22); // Increase font size
+            notificationLabel.setPadding(0, 30, 0, 0); // Add top padding
+            dynamicContentLayout.addView(notificationLabel);
+            dynamicTextViews.add(notificationLabel);
+
+        }
+
+
+
+    }
+
     //      .................................................Update Query.............................
     private void showCoursesTaught() {
         // Perform query to fetch courses taught by the instructor
-        List<Course> courses = getDummyCourses(); // Dummy data for courses taught //TODO......Query
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(InstructorMainActivity.this);
+        String instructor_username = sharedPrefManager.readString("username", "");
+        List<Course> courses = API.getInstructorCurrentCourses(instructor_username);  //TODO......Query
+
 
         // Clear existing TextViews
         clearDynamicTextViews();
 
         // Create TextViews for courses taught
         for (Course course : courses) {
-            TextView textView = createTextView(course.getCourse_title());
+            TextView textView = createTextView(course.getTitle());
             dynamicContentLayout.addView(textView);
             dynamicTextViews.add(textView);
         }
@@ -115,14 +157,17 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
     //      .................................................Update Query.............................
     private void showPreviouslyTaughtCourses() {
         // Perform query to fetch previously taught courses by the instructor
-        List<Course> previouslyTaughtCourses = getDummyPreviouslyTaughtCourses(); //TODO......Query // Dummy data for previously taught courses
+        // Perform query to fetch courses taught by the instructor
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(InstructorMainActivity.this);
+        String instructor_username = sharedPrefManager.readString("username", "");
+        List<Course> previouslyTaughtCourses = API.getInstructorPreviousCourses(instructor_username); //TODO......Query
 
         // Clear existing TextViews
         clearDynamicTextViews();
 
         // Create TextViews for previously taught courses
         for (Course course : previouslyTaughtCourses) {
-            TextView textView = createTextView(course.getCourse_title());
+            TextView textView = createTextView(course.getTitle());
             dynamicContentLayout.addView(textView);
             dynamicTextViews.add(textView);
         }
@@ -131,18 +176,59 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
     //      .................................................Update Query.............................
 
     private void showStudentsList() {
-        // Perform query to fetch the list of students in a selected course
-        List<Student> students = getDummyStudents(); //TODO......Query // Dummy data for students list
+
 
         // Clear existing TextViews
         clearDynamicTextViews();
 
-        // Create TextViews for students list
-        for (Student student : students) {
-            TextView textView = createTextView(student.getName());
-            dynamicContentLayout.addView(textView);
-            dynamicTextViews.add(textView);
+
+
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(InstructorMainActivity.this);
+        String instructor_username = sharedPrefManager.readString("username", "");
+
+
+        // Spinner for Courses
+        Spinner coursesSpinner = new Spinner(this);
+        List<Course> coursesList = API.getInstructorCurrentCourses(instructor_username); //TODO......Query
+        List<String> coursesTitles = new ArrayList<>();
+        for (Course course : coursesList) {
+            coursesTitles.add(course.getTitle());
         }
+        ArrayAdapter<String> coursesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, coursesTitles);
+        coursesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        coursesSpinner.setAdapter(coursesAdapter);
+        dynamicContentLayout.addView(coursesSpinner);
+
+        // Show Students Button
+        Button showStudentsButton = new Button(this);
+        showStudentsButton.setText("Show Students");
+        //dynamicContentLayout.addView(showHistoryButton);
+        showStudentsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Clear the dynamic content layout
+                dynamicContentLayout.removeAllViews();
+
+                String selectedCourse = coursesSpinner.getSelectedItem().toString();
+
+                // .....................TODO: Query the database based on the selected course and retrieve the course history data
+
+                Course course = API.getCourse(selectedCourse); //TODO......Query
+                List<String> students = course.getTrainees();
+
+
+                // Create TextViews for students list
+                for (String student : students) {
+                    TextView textView = createTextView(student);
+                    dynamicContentLayout.addView(textView);
+                    dynamicTextViews.add(textView);
+                }
+
+
+            }
+        });
+
+        dynamicContentLayout.addView(showStudentsButton);
     }
 
 
@@ -151,47 +237,122 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
 
     private void showProfile() {
         // Fetch the instructor's profile information
-        Instructor instructor = getDummyProfile(); //TODO......Query // Dummy data for instructor's profile
+        // Perform query to fetch courses taught by the instructor
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(InstructorMainActivity.this);
+        String instructor_username = sharedPrefManager.readString("username", "");
+
+        JSONObject instructor = API.getInstructorProfile(instructor_username); //TODO......Query
+        String username;
+        String firstName;
+        String lastName;
+        String mobile_number;
+        String address;
+        String specialization;
+        String degree;
+        String email;
+
+        try {
+
+            username = instructor.getString("username");
+            firstName = instructor.getString("firstName") ;
+            lastName = instructor.getString("lastName");
+            mobile_number = instructor.getString("phone");
+            address = instructor.getString("address");
+            specialization = instructor.getString("specialization");
+            degree = instructor.getString("degree");
+            email = instructor.getString("email");
+
+        } catch (JSONException e) {
+            return;
+        }
+
 
         // Clear existing TextViews
         clearDynamicTextViews();
 
         // Create TextView and EditText for name
-        TextView nameLabel = createLabelTextView("Name:");
-        EditText nameEditText = createEditableEditText(instructor.getName());
-        dynamicContentLayout.addView(nameLabel);
-        dynamicContentLayout.addView(nameEditText);
+        TextView firstNameLabel = createLabelTextView("firstname:");
+        EditText firstNameEditText = createEditableEditText(firstName);
+        dynamicContentLayout.addView(firstNameLabel);
+        dynamicContentLayout.addView(firstNameEditText);
+
+        // Create TextView and EditText for name
+        TextView lastNameLabel = createLabelTextView("lastname:");
+        EditText lastNameEditText = createEditableEditText(lastName);
+        dynamicContentLayout.addView(lastNameLabel);
+        dynamicContentLayout.addView(lastNameEditText);
 
         // Create TextView and EditText for mobile number
         TextView mobileLabel = createLabelTextView("Mobile Number:");
-        EditText mobileEditText = createEditableEditText(""+instructor.getMobile_number());
+        EditText mobileEditText = createEditableEditText(mobile_number);
         dynamicContentLayout.addView(mobileLabel);
         dynamicContentLayout.addView(mobileEditText);
 
         // Create TextView and EditText for address
         TextView addressLabel = createLabelTextView("Address:");
-        EditText addressEditText = createEditableEditText(instructor.getAddress());
+        EditText addressEditText = createEditableEditText(address);
         dynamicContentLayout.addView(addressLabel);
         dynamicContentLayout.addView(addressEditText);
 
         // Create TextView and EditText for specialization
         TextView specializationLabel = createLabelTextView("Specialization:");
-        EditText specializationEditText = createEditableEditText(instructor.getSpecialization());
+        EditText specializationEditText = createEditableEditText(specialization);
         dynamicContentLayout.addView(specializationLabel);
         dynamicContentLayout.addView(specializationEditText);
 
         // Create TextView and EditText for degree
         TextView degreeLabel = createLabelTextView("Degree:");
-        EditText degreeEditText = createEditableEditText(instructor.getDegree());
+        EditText degreeEditText = createEditableEditText(degree);
         dynamicContentLayout.addView(degreeLabel);
         dynamicContentLayout.addView(degreeEditText);
+
+        // Create TextView and EditText for email
+        TextView emailLabel = createLabelTextView("Email:");
+        EditText emailEditText = createEditableEditText(email);
+        dynamicContentLayout.addView(emailLabel);
+        dynamicContentLayout.addView(emailEditText);
 
         // Create Edit button
         editButton = createEditButton();
         dynamicContentLayout.addView(editButton);
+
+        // update tabels in BataBase when this button presseed
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // update tabels in BataBase when this button presseed
+                //TODO..........Update Query
+                // Read the values from the edit texts
+
+                String firstName = firstNameEditText.getText().toString();
+                String lastName = lastNameEditText.getText().toString();
+
+
+
+                Boolean done = API.profileUpdate( firstName, lastName, username);
+
+                if(done){
+                    sharedPrefManager.writeString("first_name", firstName);
+                    sharedPrefManager.writeString("last_name", lastName);
+                    Toast.makeText(InstructorMainActivity.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(InstructorMainActivity.this, "Profile Not Updated", Toast.LENGTH_SHORT).show();
+                }
+
+
+            }
+        });
+
+
     }
 
 
+    private void logout(){
+
+        Intent intent = new Intent(InstructorMainActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
 
 
     private void clearDynamicTextViews() {
@@ -243,42 +404,6 @@ public class InstructorMainActivity extends AppCompatActivity implements Navigat
 
 // ............................ End function to add .............................
 
-
-
-
-
-    private List<Course> getDummyCourses() {
-        // Dummy data for courses taught
-        List<Course> courses = new ArrayList<>();
-        courses.add(new Course("Course 1", "Description 1"));
-        courses.add(new Course("Course 2", "Description 2"));
-        courses.add(new Course("Course 3", "Description 3"));
-        return courses;
-    }
-
-    private List<Course> getDummyPreviouslyTaughtCourses() {
-        // Dummy data for previously taught courses
-        List<Course> previouslyTaughtCourses = new ArrayList<>();
-        previouslyTaughtCourses.add(new Course("Course A", "Description A"));
-        previouslyTaughtCourses.add(new Course("Course B", "Description B"));
-        previouslyTaughtCourses.add(new Course("Course C", "Description C"));
-        return previouslyTaughtCourses;
-    }
-
-    private List<Student> getDummyStudents() {
-        // Dummy data for students list
-        List<Student> students = new ArrayList<>();
-        students.add(new Student("John Doe"));
-        students.add(new Student("Jane Smith"));
-        students.add(new Student("Michael Johnson"));
-        return students;
-    }
-
-    private Instructor getDummyProfile() {
-        // Dummy data for getDummyProfile list
-        Instructor instructor = new Instructor("Mohammad mualla",101,"Rammalla","CE", "BSc");
-        return instructor;
-    }
 
 
 
