@@ -59,7 +59,13 @@ public class MainActivity extends AppCompatActivity {
 
                 String user_type = API.getUserTypeByEmail(email);
 
-                if (user_type.equals("admin")) {
+                if (user_type == null) {
+                    Toast.makeText(MainActivity.this, "Wrong email", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+
+                if (user_type.equals("owner")) {
 
                     JSONObject user = API.ownerSignIn(email, password);
                     if (user == null) {
@@ -172,10 +178,6 @@ public class MainActivity extends AppCompatActivity {
 
                     Intent intent = new Intent(MainActivity.this, StudentMainActivity.class);
                     startActivity(intent);
-                }else {
-
-                    Toast.makeText(MainActivity.this, "User not exist, Wrong Email", Toast.LENGTH_SHORT).show();
-
                 }
 
 

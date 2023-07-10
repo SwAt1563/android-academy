@@ -641,7 +641,8 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
 
         //Dummy list
         //TODO : .............fetch the Registration from the database...............................................................................................
-        List<String> RegistrationList = Arrays.asList("Mohammad: C", "Ali: Python", "SWAT: Java", "QUTAYIBA: AI"); // Replace with your actual course list
+        List<String> RegistrationList = API.traineeEnrollmentList();
+
 
         //CourseAdapter: We can use this class for any list of cheacke boxes
         CourseAdapter RegistrationListAdapter = new CourseAdapter(this, RegistrationList);
@@ -658,6 +659,17 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 // To get the checked boxes for the Accept Registration
                 Set<String> AcceptRegistration = RegistrationListAdapter.getSelectedCourses();
                 for (String Accept : AcceptRegistration) {
+                    String[] parts = Accept.split(",");
+                    String courseName = parts[0];
+                    String traineeName = parts[1];
+
+                    Boolean done = API.ownerEnroll(traineeName, courseName, "Approved");
+
+                    if (done) {
+                        Toast.makeText(getApplicationContext(), "Registration Accepted Successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Registration Not Accepted", Toast.LENGTH_SHORT).show();
+                    }
 
                     //TODO :.........................add Accepted Registration to the dataBase............................................................
                 }
@@ -684,6 +696,17 @@ public class AdmainMainActivity extends AppCompatActivity implements NavigationV
                 // To get the checked boxes for the Reject Registration
                 Set<String> RejectRegistration = RegistrationListAdapter.getSelectedCourses();
                 for (String Reject : RejectRegistration) {
+                    String[] parts = Reject.split(",");
+                    String courseName = parts[0];
+                    String traineeName = parts[1];
+
+                    Boolean done = API.ownerEnroll(traineeName, courseName, "Rejected");
+
+                    if (done) {
+                        Toast.makeText(getApplicationContext(), "Registration Rejected Successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Registration Not Rejected", Toast.LENGTH_SHORT).show();
+                    }
 
                     //TODO :.........................delete Rejected Registration from the dataBase............................................................
                 }
